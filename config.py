@@ -47,3 +47,71 @@ COLUMN_DESCRIPTIONS = {
     'thal': 'Thalassemia Type',
     'num': 'Diagnosis of heart disease (0=no disease, 1-4=disease severity)'
 }
+
+#Validation
+
+def validate_config():
+    """Check if all required configuration values are set"""
+    errors = []
+    
+    if not AWS_ACCESS_KEY_ID:
+        errors.append("AWS_ACCESS_KEY_ID not set")
+    if not AWS_SECRET_ACCESS_KEY:
+        errors.append("AWS_SECRET_ACCESS_KEY not set")
+    if not SOURCE_BUCKET:
+        errors.append("SOURCE_BUCKET not set")
+    if not TARGET_BUCKET:
+        errors.append("TARGET_BUCKET not set")
+    
+    if MIN_AGE < 0 or MAX_AGE > 150:
+        errors.append("Age constraints out of reasonable range")
+    if MIN_BLOOD_PRESSURE < 0 or MAX_BLOOD_PRESSURE > 300:
+        errors.append("Blood pressure constraints out of reasonable range")
+    
+    if errors:
+        error_msg = "Configuration errors:\n  - " + "\n  - ".join(errors)
+        raise ValueError(error_msg)
+    
+    return True
+
+
+def get_s3_path():
+    """Get full S3 path to source data"""
+    return "s3://" + SOURCE_BUCKET + "/" + SOURCE_KEY
+
+
+def get_quality_rules():
+    """Get all data quality rules as a dictionary"""
+    return {
+        'min_age': MIN_AGE,
+        'max_age': MAX_AGE,
+        'min_trestbps': MIN_BLOOD_PRESSURE,
+        'max_trestbps': MAX_BLOOD_PRESSURE,
+        'min_chol': MIN_CHOLESTEROL,
+        'max_chol': MAX_CHOLESTEROL,
+        'min_thalch': MIN_HEART_RATE,
+        'max_thalch': MAX_HEART_RATE,
+        'min_oldpeak': MIN_ST_DEPRESSION,
+        'max_oldpeak': MAX_ST_DEPRESSION
+    }
+
+
+def print_config_summary():
+    """Print configuration summary"""
+    print("\n" + "="*70)
+    print("CONFIGURATION SUMMARY")
+    print("="*70)
+    print("Source: s3://" + SOURCE_BUCKET + "/" + SOURCE_KEY)
+    print("Warehouse: s3://" + TARGET_BUCKET + "/" + TARGET_BASE_FILE + "/")
+    print("  - Bronze: " + BRONZE_PREFIX)
+    print("  - Silver: " + SILVER_PREFIX)
+    print("  - Gold: " + GOLD_PREFIX)
+    print("\nFull S3 Paths:")
+    print("  - Bronze: s3://" + TARGET_BUCKET + "/" + BRONZE_PREFIX)
+    print("  - Silver: s3://" + TARGET_BUCKET + "/" + SILVER_PREFIX)
+    print("  - Gold: s3://" + TARGET_BUCKET + "/" + GOLD_PREFIX)
+    print("\nData Quality Rules:")
+    print("  - Age: " + str(MIN_AGE) + "-" + str(MAX_AGE) + " years")
+    print("  - Blood Pressure: " + str(MIN_BLOOD_PRESSURE) + "-" + str(MAX_BLOOD_PRESSURE) + " mmHg")
+    print("  - Cholesterol: " + str(MIN_CHOLESTEROL) + "-" + str(MAX_CHOLESTEROL) + " mg/dL")
+    print("="*70 + "\n")
