@@ -42,13 +42,13 @@ class SilverLayer:
         print("\n Starting Silver Layer transformations: Data Cleaning and Standardization")
         print("\n Stage 1: Type Casting")
         self.conn.execute(SILVER_STAGE1_CAST_TYPES)
-        stage1_count = self.conn.execute("SELECT COUNT(*) FROM silver_stage1").fetchone()[0]
-        print("\n Stage 1 completed. Records in silver_stage1: " + str(stage1_count))
+        stage1_count = self.conn.execute("SELECT COUNT(*) FROM silver_stage1_typed").fetchone()[0]
+        print("\n Stage 1 completed. Records in silver_stage1_typed: " + str(stage1_count))
 
         print("\n Stage 2: Standardization")
         self.conn.execute(SILVER_STAGE2_STANDARDIZATION)
-        stage2_count = self.conn.execute("SELECT COUNT(*) FROM silver_stage2").fetchone()[0]
-        print("\n Stage 2 completed. Records in silver_stage2: " + str(stage2_count))
+        stage2_count = self.conn.execute("SELECT COUNT(*) FROM silver_stage2_standardized").fetchone()[0]
+        print("\n Stage 2 completed. Records in silver_stage2_standardized: " + str(stage2_count))
 
         print("\n Sample records after Standardization:")
         sample = self.conn.execute("""
@@ -68,7 +68,7 @@ class SilverLayer:
                 COUNT(*) AS total_records,
                 SUM(CASE WHEN has_quality_issues THEN 1 ELSE 0 END) AS records_with_issues,
                 COUNT(*) - SUM(CASE WHEN has_quality_issues THEN 1 ELSE 0 END) AS clean_records
-            FROM silver_stage3_quality_checked
+            FROM silver_stage3_validated
         """).fetchone()
 
         print("\n Stage 3 completed. Data Quality Summary:")
@@ -110,10 +110,10 @@ class SilverLayer:
         print("\n Preparing to export Silver layer to S3")
 
         self.conn.execute(
-            "COPY silver_heart_disease TO ? (FORMAT PARQUET, COMPRESSION 'SNAPPY')", [local_path])
+            "COPY silver_heart_disease TO ? (FORMAT PARQUET, COMPRESSION SNAPPY)", [local_path])
 
         S3_client = boto3.client(
-            'S3',
+            's3',
             aws_access_key_id=config.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY
         )
@@ -121,10 +121,10 @@ class SilverLayer:
 
         try:
             S3_client.upload_file(local_path, config.TARGET_BUCKET, S3_key)
-            print("Silver layer successfully exported to S3 at: s3://" + config.TARGET_BUCKET + "/" + S3_key)
+            print("Silver layer successfully exported to S3 at: s3://{}/{}".format(config.TARGET_BUCKET, S3_key))
         except Exception as e:
-            print("Error uploading Silver layer to S3: " + str(e))
-            print("Silver Layer data saved locally at: " + local_path)
+            print("Error uploading Silver layer to S3: {}".format(str(e)))
+            print("Silver Layer data saved locally at: {}".format(local_path))
 
         if os.path.exists(local_path):
             os.remove(local_path)

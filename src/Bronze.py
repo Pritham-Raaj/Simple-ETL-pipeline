@@ -21,7 +21,7 @@ class BronzeLayer:
             s3.head_object(Bucket=bucket, Key=key)
             return True
         except Exception as e:
-            print("Error accessing S3 path:" + str(e))
+            print("Error accessing S3 path: {}".format(str(e)))
             return False
         
     def _init_duckdb(self):
@@ -61,7 +61,7 @@ class BronzeLayer:
 
         result = self.conn.execute("SELECT COUNT(*) AS record_count FROM bronze_heart_disease").fetchone()
         record_count = result[0] if result else 0
-        print("Raw data ingestion completed. Total records ingested:" + str(record_count))
+        print("Raw data ingestion completed. Total records ingested: {}".format(str(record_count)))
         print("Sample records from the first 5 rows:" + str(self.conn.execute("SELECT * FROM bronze_heart_disease LIMIT 5").fetchdf()))
         return self.conn
     
@@ -82,10 +82,10 @@ class BronzeLayer:
         S3_key = config.BRONZE_PREFIX + "bronze_layer_heart_data.parquet"
         try:
             S3_client.upload_file(local_path, config.TARGET_BUCKET, S3_key)
-            print("Bronze layer successfully exported to s3://" + config.TARGET_BUCKET + "/" + S3_key)
+            print("Bronze layer successfully exported to s3://{}/{}".format(config.TARGET_BUCKET, S3_key))
         except Exception as e:
-            print("Error uploading Bronze layer to S3:" + str(e))
-            print("The Bronze layer data is saved locally at:" + local_path)
+            print("Error uploading Bronze layer to S3: {}".format(str(e)))
+            print("The Bronze layer data is saved locally at: {}".format(local_path))
 
         if os.path.exists(local_path):
             os.remove(local_path)
