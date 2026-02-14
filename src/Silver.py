@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from Bronze import BronzeLayer
 import os
 import sys
+import tempfile
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 from sql.transformations import ( SILVER_STAGE1_CAST_TYPES, SILVER_STAGE2_STANDARDIZATION, SILVER_STAGE3_QUALITY_CHECK, SILVER_FINAL_TABLE, DATA_QUALITY_REPORT)
@@ -61,7 +62,10 @@ class SilverLayer:
         print("\n Stage 3: Data Quality Checks")
         self._quality_rules_validation()
         quality_rules = config.get_quality_rules()
-        self.conn.execute(SILVER_STAGE3_QUALITY_CHECK, quality_rules)
+        quality_sql = SILVER_STAGE3_QUALITY_CHECK
+        for key, value in quality_rules.items():
+            quality_sql = quality_sql.replace('$' + key, str(value))
+        self.conn.execute(quality_sql)
 
         quality_stats = self.conn.execute("""
             SELECT
@@ -92,13 +96,7 @@ class SilverLayer:
         print("\n Age Group Distribution")
         age_distribution = self.conn.execute("""
             SELECT 
-                CASE 
-                    WHEN age < 30 THEN '<30'
-                    WHEN age BETWEEN 30 AND 39 THEN '30-39'
-                    WHEN age BETWEEN 40 AND 49 THEN '40-49'
-                    WHEN age BETWEEN 50 AND 59 THEN '50-59'
-                    WHEN age >= 60 THEN '60+'
-                END AS age_group,
+                age_group,
                 COUNT(*) AS count
             FROM silver_heart_disease
             GROUP BY age_group
@@ -106,8 +104,11 @@ class SilverLayer:
         """).fetchdf()
         print(age_distribution)
 
-    def save_to_S3(self, local_path="/tmp/silver_heart_disease.parquet"):
+    def save_to_S3(self, local_path=None):
         print("\n Preparing to export Silver layer to S3")
+
+        if local_path is None:
+            local_path = os.path.join(tempfile.gettempdir(), "silver_heart_disease.parquet")
 
         self.conn.execute(
             "COPY silver_heart_disease TO ? (FORMAT PARQUET, COMPRESSION SNAPPY)", [local_path])
@@ -115,7 +116,8 @@ class SilverLayer:
         S3_client = boto3.client(
             's3',
             aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY
+            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+            region_name=config.AWS_REGION
         )
         S3_key = config.SILVER_PREFIX + "silver_layer_heart_data.parquet"
 

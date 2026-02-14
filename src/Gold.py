@@ -4,6 +4,7 @@ import duckdb
 import boto3
 import os
 import sys
+import tempfile
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 from Bronze import BronzeLayer
@@ -92,12 +93,13 @@ class GoldLayer:
         S3_client = boto3.client(
             's3',
             aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY
+            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+            region_name=config.AWS_REGION
         )
 
         for table_name in self.gold_tables:
             validated_name = self.validate_table_name(table_name)
-            local_path = "/tmp/" + validated_name + ".parquet"
+            local_path = os.path.join(tempfile.gettempdir(), validated_name + ".parquet")
             self.conn.execute("COPY {} TO ? (FORMAT PARQUET, COMPRESSION SNAPPY)".format(validated_name), [local_path])
             S3_key = config.GOLD_PREFIX + validated_name + ".parquet"
 
@@ -111,9 +113,13 @@ class GoldLayer:
             if os.path.exists(local_path):
                 os.remove(local_path)
                 print("Local file for " + validated_name + " removed after upload.")
-
-    def for_powerbi(self, output_path="/tmp/powerbi_fact_table.parquet"):
+                
+    def for_powerbi(self, output_path=None):
         print("\n Preparing curated data for PowerBI visualization")
+
+        if output_path is None:
+            output_path = os.path.join(tempfile.gettempdir(), "powerbi_fact_table")
+        
         os.makedirs(output_path, exist_ok=True)
         for table_name in self.gold_tables:
             validated_name = self.validate_table_name(table_name)

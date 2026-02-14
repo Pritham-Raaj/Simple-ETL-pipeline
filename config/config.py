@@ -1,10 +1,14 @@
 # Configuration file for the usage of AWS S3 services and constraints for the data
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #AWS Credentials and Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
 SOURCE_BUCKET = os.getenv("SOURCE_BUCKET", "pritham-heartdata")
 SOURCE_KEY = os.getenv("SOURCE_KEY", "heart_disease_uci.csv")
 TARGET_BUCKET = os.getenv("TARGET_BUCKET", "data-endpoint")
@@ -101,6 +105,7 @@ def print_config_summary():
     print("\n" + "="*70)
     print("CONFIGURATION SUMMARY")
     print("="*70)
+    print("AWS Region: " + str(AWS_REGION))
     print("Source: s3://" + SOURCE_BUCKET + "/" + SOURCE_KEY)
     print("Warehouse: s3://" + TARGET_BUCKET + "/" + TARGET_BASE_FILE + "/")
     print("  - Bronze: " + BRONZE_PREFIX)

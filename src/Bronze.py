@@ -6,6 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 import sys
+import tempfile
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 from sql.transformations import BRONZE_CREATE_TABLE
@@ -33,14 +34,17 @@ class BronzeLayer:
             raise ValueError("AWS_ACCESS_KEY_ID must be set in the config file.")
         if not config.AWS_SECRET_ACCESS_KEY or not isinstance(config.AWS_SECRET_ACCESS_KEY, str):
             raise ValueError("AWS_SECRET_ACCESS_KEY must be set in the config file.")
+        if not config.AWS_REGION or not isinstance(config.AWS_REGION, str):
+            raise ValueError("Invalid AWS region configuration")
         
         self.conn.execute("""
             CREATE SECRET AWS_credentials (
                           TYPE S3,
                           KEY_ID ?,
                           SECRET ?,
+                          REGION ?
             )
-        """, [config.AWS_ACCESS_KEY_ID, config.AWS_SECRET_ACCESS_KEY])
+        """, [config.AWS_ACCESS_KEY_ID, config.AWS_SECRET_ACCESS_KEY, config.AWS_REGION])
         print("DuckDB initialized with AWS credentials.")
     
     def raw_data_ingestion(self):
@@ -65,8 +69,11 @@ class BronzeLayer:
         print("Sample records from the first 5 rows:" + str(self.conn.execute("SELECT * FROM bronze_heart_disease LIMIT 5").fetchdf()))
         return self.conn
     
-    def save_to_S3(self, local_path="/tmp/bronze_heart_disease.parquet"):
+    def save_to_S3(self, local_path=None):
         print("\n Preparing to export Bronze layer to S3")
+
+        if local_path is None:
+            local_path = os.path.join(tempfile.gettempdir(), "bronze_heart_disease.parquet")
 
         self.conn.execute(
             "COPY bronze_heart_disease TO ? (FORMAT PARQUET, COMPRESSION SNAPPY)",
@@ -76,7 +83,8 @@ class BronzeLayer:
         S3_client = boto3.client(
             's3',
             aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY
+            aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+            region_name=config.AWS_REGION
             )
         
         S3_key = config.BRONZE_PREFIX + "bronze_layer_heart_data.parquet"

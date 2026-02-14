@@ -114,7 +114,7 @@ def main():
     elif args.layer == 'silver':
         pipeline.run_silver_layer()
     else: 
-        pipeline.run(save_to_s3=not args.no_s3, export_to_powerbi=not args.no_powerbi)
+        pipeline.run(save_to_S3=not args.no_s3, export_to_powerbi=not args.no_powerbi)
 
 if __name__ == "__main__":
     main()
