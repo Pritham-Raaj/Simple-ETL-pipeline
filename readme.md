@@ -4,7 +4,7 @@ A python and SQL based pipeline for using raw data from an AWS bucket and transf
 
 ## Medallion Architecture
 
-![Diagram](images/Medallion-Arch-Warehouse.png)
+![Diagram](images/Medallion-Arch(image).png)
 
 The Architecture follows the basic 3 step process of Bronze, Silver and Gold using DuckDB for implementing SQL transformations and AWS S3 buckets for storage.
 
