@@ -4,15 +4,15 @@ A python and SQL based pipeline for using raw data from an AWS bucket and transf
 
 ## Medallion Architecture
 
-![Diagram](Medallion Arch-(Warehouse).drawio.svg)
+![Diagram](Medallion%20Arch-(Warehouse).drawio.svg)
 
 The Architecture follows the basic 3 step process of Bronze, Silver and Gold using DuckDB for implementing SQL transformations and AWS S3 buckets for storage.
 
-**Bronze Layer - Ingests the raw data stored as a CSV file in a separate S3 bucket and creates a table using that data, making further operations on it much easier.
+**Bronze Layer** - Ingests the raw data stored as a CSV file in a separate S3 bucket and creates a table using that data, making further operations on it much easier.
 
-**Silver Layer - Using the created table from the Bronze layer, it performs Data cleaning and Standardization in a 3 stage process of typecasting and column renaming, value standardization and data quality validation against adjustable threshholds.
+**Silver Layer** - Using the created table from the Bronze layer, it performs Data cleaning and Standardization in a 3 stage process of typecasting and column renaming, value standardization and data quality validation against adjustable threshholds.
 
-**Gold Layer - By combining the work done during the Bronze and Silver layers, business-level aggregations like Risk factor analysis, Severity Distribution, Clinical metrics and a fact table which is helpful for visualizations is created in this layer.
+**Gold Layer** - By combining the work done during the Bronze and Silver layers, business-level aggregations like Risk factor analysis, Severity Distribution, Clinical metrics and a fact table which is helpful for visualizations is created in this layer.
 
 ## File Structure
 
@@ -36,12 +36,12 @@ Simple-ETL-pipeline/
 
 ## Setup
 
-** Step 1: Install Dependencies from the requirements.txt file
+**Step 1:** Install Dependencies from the requirements.txt file
         
         ```bash
         pip install -r requirements.txt
         ```
-** Step 2: Configure AWS credentials by following the .env example given
+**Step 2:** Configure AWS credentials by following the .env example given
 
         Copy `.env.example` to `.env` and fill in your AWS credentials and bucket details:
 
@@ -53,7 +53,7 @@ Simple-ETL-pipeline/
         SOURCE_KEY=heart_disease_uci.csv
         TARGET_BUCKET=your-target-bucket
         ```
-** Step 3: Run the pipeline.py file from src folder
+**Step 3:** Run the pipeline.py file from src folder
 
         ```bash
         python src/pipeline.py
