@@ -51,13 +51,12 @@ SELECT
     TRIM(dataset) AS dataset,
     
     CASE 
-        WHEN LOWER(chest_pain_type) LIKE '%typical%' THEN 'Typical Angina'
         WHEN LOWER(chest_pain_type) LIKE '%atypical%' THEN 'Atypical Angina'
+        WHEN LOWER(chest_pain_type) LIKE '%typical%' THEN 'Typical Angina'
         WHEN LOWER(chest_pain_type) LIKE '%non%' THEN 'Non-Anginal Pain'
         WHEN LOWER(chest_pain_type) LIKE '%asymp%' THEN 'Asymptomatic'
         ELSE 'Unknown'
     END AS chest_pain_type,
-    
     resting_blood_pressure,
     cholesterol,
     fasting_blood_sugar_high,
