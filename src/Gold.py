@@ -125,9 +125,9 @@ class GoldLayer:
             validated_name = self.validate_table_name(table_name)
             csv_path = os.path.join(output_path, validated_name + ".csv")
         
-        self.conn.execute("COPY {} TO ? (HEADER, DELIMITER ',')".format(validated_name), [csv_path])
-        print("PowerBI fact table saved locally at: " + csv_path)
-        return output_path
+            self.conn.execute("COPY {} TO ? (HEADER, DELIMITER ',')".format(validated_name), [csv_path])
+            print("PowerBI fact table saved locally at: " + csv_path)
+            return output_path
 
 def main():
     load_dotenv()
