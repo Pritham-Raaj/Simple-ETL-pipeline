@@ -127,7 +127,7 @@ class GoldLayer:
         
             self.conn.execute("COPY {} TO ? (HEADER, DELIMITER ',')".format(validated_name), [csv_path])
             print("PowerBI fact table saved locally at: " + csv_path)
-            return output_path
+        return output_path
 
 def main():
     load_dotenv()
